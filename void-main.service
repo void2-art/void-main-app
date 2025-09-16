@@ -1,0 +1,20 @@
+[Unit]
+Description=Void Main IoT Application
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=pi
+WorkingDirectory=/home/pi/void-main-app
+Environment=NODE_ENV=production
+Environment=PATH=/usr/bin:/usr/local/bin:/home/pi/.nvm/versions/node/v18.17.0/bin
+ExecStart=/home/pi/.nvm/versions/node/v18.17.0/bin/node dist/index.js
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=void-main
+
+[Install]
+WantedBy=multi-user.target
