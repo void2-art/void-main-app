@@ -10,6 +10,8 @@ A TypeScript application for Raspberry Pi 5 that integrates sensors, display out
 - **Text-to-Speech**: ElevenLabs integration for voice responses
 - **Web Interface**: Remote configuration and monitoring via web API
 - **Real-time Updates**: WebSocket support for live data streaming
+- **Auto-Deployment**: GitHub webhook integration for automatic updates
+- **Alpine Linux Support**: Optimized for Alpine Linux on Raspberry Pi
 
 ## Hardware Requirements
 
@@ -105,6 +107,12 @@ Copy `env.example` to `.env` and configure the following:
 - `POST /api/display/update` - Update display content
 - `POST /api/display/clear` - Clear display
 
+### Deployment
+- `POST /api/deploy/webhook` - GitHub webhook endpoint
+- `POST /api/deploy/deploy` - Manual deployment trigger
+- `GET /api/deploy/status` - Deployment status
+- `GET /api/deploy/logs` - Deployment logs
+
 ### System
 - `GET /api/system` - System information
 - `GET /health` - Health check
@@ -157,6 +165,62 @@ For remote access over the internet:
 - Protocol: TCP
 
 Access via: `http://your-external-ip:8080`
+
+## Auto-Deployment Setup
+
+This application supports automatic deployment when you push changes to the main branch on GitHub.
+
+### Quick Setup for Alpine Linux
+
+```bash
+# One-line setup (when repository is already on GitHub)
+curl -sSL https://raw.githubusercontent.com/yourusername/void-main-app/main/setup-alpine.sh | sh
+```
+
+### Manual Setup
+
+1. **Configure Environment Variables**
+   ```bash
+   # Generate webhook secret
+   openssl rand -hex 32
+   
+   # Add to .env
+   GITHUB_WEBHOOK_SECRET=your-generated-secret
+   DEPLOY_SCRIPT_PATH=./deploy-update.sh
+   AUTO_RESTART=true
+   ```
+
+2. **Set Up GitHub Webhook**
+   - Go to your repository → Settings → Webhooks
+   - Add webhook with URL: `http://your-pi-ip:3000/api/deploy/webhook`
+   - Set content type to `application/json`
+   - Add your webhook secret
+   - Select "Just the push event"
+
+3. **Configure Network Access**
+   - Set up port forwarding on your router
+   - Or use ngrok/cloudflare tunnel for testing
+
+### Deployment Features
+
+- ✅ Automatic backup before deployment
+- ✅ Rollback on failure
+- ✅ Service restart management
+- ✅ Deployment logging
+- ✅ Network connectivity checks
+- ✅ Git repository validation
+
+### Manual Deployment
+
+```bash
+# Trigger via API
+curl -X POST http://localhost:3000/api/deploy/deploy
+
+# Or run script directly
+./deploy-update.sh
+```
+
+For detailed Alpine Linux setup instructions, see [ALPINE_SETUP.md](ALPINE_SETUP.md).
 
 ## Raspberry Pi Setup
 

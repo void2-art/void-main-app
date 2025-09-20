@@ -9,6 +9,7 @@ import { AuthController } from '@/controllers/AuthController';
 import { SensorController } from '@/controllers/SensorController';
 import { AIController } from '@/controllers/AIController';
 import { DisplayController } from '@/controllers/DisplayController';
+import { DeploymentController } from '@/controllers/DeploymentController';
 
 export class WebServer {
   private app: Express;
@@ -19,6 +20,7 @@ export class WebServer {
   private sensorController: SensorController;
   private aiController: AIController;
   private displayController: DisplayController;
+  private deploymentController: DeploymentController;
 
   constructor(config: ServerConfig) {
     this.config = config;
@@ -36,6 +38,7 @@ export class WebServer {
     this.sensorController = new SensorController();
     this.aiController = new AIController();
     this.displayController = new DisplayController();
+    this.deploymentController = new DeploymentController();
 
     this.setupMiddleware();
     this.setupRoutes();
@@ -79,6 +82,7 @@ export class WebServer {
     this.app.use('/api/sensors', this.sensorController.getRouter());
     this.app.use('/api/ai', this.aiController.getRouter());
     this.app.use('/api/display', this.displayController.getRouter());
+    this.app.use('/api/deploy', this.deploymentController.getRouter());
 
     // System info endpoint
     this.app.get('/api/system', (req: Request, res: Response) => {
