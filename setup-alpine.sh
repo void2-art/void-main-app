@@ -47,14 +47,20 @@ log_info "🚀 Setting up Void Main App on Alpine Linux"
 
 # Step 1: Install system packages
 log_step "Installing required packages..."
-if command -v sudo >/dev/null 2>&1; then
-    sudo apk update
-    sudo apk add nodejs npm git build-base python3 make g++ curl wget openssh-client openrc
+
+# Detect privilege escalation command
+if command -v doas >/dev/null 2>&1; then
+    SUDO_CMD="doas"
+elif command -v sudo >/dev/null 2>&1; then
+    SUDO_CMD="sudo"
 else
-    log_error "sudo not available. Please install packages manually:"
+    log_error "Neither doas nor sudo available. Please install packages manually:"
     echo "  apk add nodejs npm git build-base python3 make g++ curl wget openssh-client openrc"
     exit 1
 fi
+
+$SUDO_CMD apk update
+$SUDO_CMD apk add nodejs npm git build-base python3 make g++ curl wget openssh-client openrc
 
 # Step 2: Check Node.js version
 log_step "Checking Node.js version..."
@@ -183,22 +189,22 @@ start_pre() {
 EOF
 
 # Update service with correct user and paths
-sudo sed -i "s|/home/pi|$HOME|g" /etc/init.d/void-main
-sudo sed -i "s|command_user:=pi|command_user:=$(whoami)|" /etc/init.d/void-main
+$SUDO_CMD sed -i "s|/home/pi|$HOME|g" /etc/init.d/void-main
+$SUDO_CMD sed -i "s|command_user:=pi|command_user:=$(whoami)|" /etc/init.d/void-main
 
-sudo chmod +x /etc/init.d/void-main
-sudo rc-update add void-main default
+$SUDO_CMD chmod +x /etc/init.d/void-main
+$SUDO_CMD rc-update add void-main default
 
 # Step 10: Create backup directory
 mkdir -p "$HOME/backups"
 
 # Step 11: Start service
 log_step "Starting service..."
-sudo rc-service void-main start
+$SUDO_CMD rc-service void-main start
 
 # Step 12: Check service status
 sleep 3
-if sudo rc-service void-main status | grep -q "started"; then
+if $SUDO_CMD rc-service void-main status | grep -q "started"; then
     log_info "✅ Service started successfully"
 else
     log_error "❌ Service failed to start"

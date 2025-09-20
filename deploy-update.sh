@@ -55,6 +55,16 @@ fi
 
 cd "$REPO_DIR"
 
+# Detect if we should use doas or sudo
+if command -v doas >/dev/null 2>&1; then
+    SUDO_CMD="doas"
+elif command -v sudo >/dev/null 2>&1; then
+    SUDO_CMD="sudo"
+else
+    SUDO_CMD=""
+    log_warn "Neither doas nor sudo found, will try direct service commands"
+fi
+
 # Function to check if service exists and is running
 check_service() {
     if rc-service "$SERVICE_NAME" status >/dev/null 2>&1; then
@@ -68,10 +78,18 @@ check_service() {
 stop_service() {
     if check_service; then
         log_info "Stopping $SERVICE_NAME service..."
-        if sudo rc-service "$SERVICE_NAME" stop; then
-            log_info "Service stopped successfully"
+        if [ -n "$SUDO_CMD" ]; then
+            if $SUDO_CMD rc-service "$SERVICE_NAME" stop; then
+                log_info "Service stopped successfully"
+            else
+                log_warn "Failed to stop service, continuing anyway..."
+            fi
         else
-            log_warn "Failed to stop service, continuing anyway..."
+            if rc-service "$SERVICE_NAME" stop; then
+                log_info "Service stopped successfully"
+            else
+                log_warn "Failed to stop service, continuing anyway..."
+            fi
         fi
     else
         log_warn "Service $SERVICE_NAME not found or not running"
@@ -81,11 +99,20 @@ stop_service() {
 # Function to start service
 start_service() {
     log_info "Starting $SERVICE_NAME service..."
-    if sudo rc-service "$SERVICE_NAME" start; then
-        log_info "Service started successfully"
+    if [ -n "$SUDO_CMD" ]; then
+        if $SUDO_CMD rc-service "$SERVICE_NAME" start; then
+            log_info "Service started successfully"
+        else
+            log_error "Failed to start service"
+            return 1
+        fi
     else
-        log_error "Failed to start service"
-        return 1
+        if rc-service "$SERVICE_NAME" start; then
+            log_info "Service started successfully"
+        else
+            log_error "Failed to start service"
+            return 1
+        fi
     fi
 }
 

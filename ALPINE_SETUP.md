@@ -8,37 +8,45 @@ This guide covers setting up automatic deployment on Alpine Linux for the Void M
 
 ```bash
 # Update package index
-sudo apk update
+doas apk update
 
 # Install Node.js and npm
-sudo apk add nodejs npm
+doas apk add nodejs npm
 
 # Install Git
-sudo apk add git
+doas apk add git
 
 # Install OpenRC (init system)
-sudo apk add openrc
+doas apk add openrc
 
 # Install build tools for native modules
-sudo apk add build-base python3 make g++
+doas apk add build-base python3 make g++
 
 # Install additional utilities
-sudo apk add curl wget openssh-client
+doas apk add curl wget openssh-client doas
+
+# Note: Alpine Linux uses 'doas' instead of 'sudo'
 ```
 
 ### 2. Create User and Directory Structure
 
 ```bash
 # Create application user (if not exists)
-sudo adduser -D -s /bin/sh pi
+doas adduser -D -s /bin/sh pi
+
+# Add user to wheel group for doas access
+doas adduser pi wheel
+
+# Configure doas for the user
+echo 'permit persist pi as root' | doas tee -a /etc/doas.conf
 
 # Create directories
-sudo mkdir -p /home/pi/void-main-app
-sudo mkdir -p /home/pi/backups
-sudo mkdir -p /home/pi/.ssh
+doas mkdir -p /home/pi/void-main-app
+doas mkdir -p /home/pi/backups
+doas mkdir -p /home/pi/.ssh
 
 # Set ownership
-sudo chown -R pi:pi /home/pi/
+doas chown -R pi:pi /home/pi/
 ```
 
 ## SSH Key Setup for GitHub
@@ -114,7 +122,7 @@ ELEVENLABS_VOICE_ID=your-voice-id-here
 ### 1. Create Service Script
 
 ```bash
-sudo vi /etc/init.d/void-main
+doas vi /etc/init.d/void-main
 ```
 
 Add the following content:
@@ -159,16 +167,16 @@ start_pre() {
 
 ```bash
 # Make executable
-sudo chmod +x /etc/init.d/void-main
+doas chmod +x /etc/init.d/void-main
 
 # Add to default runlevel
-sudo rc-update add void-main default
+doas rc-update add void-main default
 
 # Start the service
-sudo rc-service void-main start
+doas rc-service void-main start
 
 # Check service status
-sudo rc-service void-main status
+doas rc-service void-main status
 ```
 
 ## GitHub Webhook Configuration
@@ -251,7 +259,7 @@ cd /home/pi/void-main-app
 npm run build
 
 # Restart service
-sudo rc-service void-main restart
+doas rc-service void-main restart
 ```
 
 ### 2. Test Auto-Deployment
@@ -288,7 +296,7 @@ tail -f /home/pi/void-main-app/logs/deployment.log
 
 ```bash
 # Service status
-sudo rc-service void-main status
+doas rc-service void-main status
 
 # View logs
 tail -f /home/pi/void-main-app/logs/app.log
@@ -320,7 +328,7 @@ ls -la /home/pi/backups/
 
 # Restore from specific backup
 cp -r /home/pi/backups/backup-YYYYMMDD-HHMMSS/* /home/pi/void-main-app/
-sudo rc-service void-main restart
+doas rc-service void-main restart
 ```
 
 ## Troubleshooting
@@ -329,8 +337,8 @@ sudo rc-service void-main restart
 
 1. **Permission Denied on GPIO**
    ```bash
-   sudo adduser pi gpio
-   sudo adduser pi i2c
+   doas adduser pi gpio
+   doas adduser pi i2c
    # Logout and login again
    ```
 
@@ -369,7 +377,7 @@ sudo rc-service void-main restart
 - Application logs: `/home/pi/void-main-app/logs/app.log`
 - Error logs: `/home/pi/void-main-app/logs/error.log`
 - Deployment logs: `/home/pi/void-main-app/logs/deployment.log`
-- Service logs: Use `sudo rc-service void-main status`
+- Service logs: Use `doas rc-service void-main status`
 
 ### Performance Optimization
 
@@ -385,24 +393,24 @@ export NODE_OPTIONS="--max-old-space-size=512"
 1. **Firewall Configuration**
    ```bash
    # Install and configure iptables
-   sudo apk add iptables iptables-openrc
+   doas apk add iptables iptables-openrc
    
    # Basic firewall rules
-   sudo iptables -A INPUT -i lo -j ACCEPT
-   sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-   sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
-   sudo iptables -A INPUT -p tcp --dport 3000 -j ACCEPT
-   sudo iptables -A INPUT -j DROP
+   doas iptables -A INPUT -i lo -j ACCEPT
+   doas iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+   doas iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+   doas iptables -A INPUT -p tcp --dport 3000 -j ACCEPT
+   doas iptables -A INPUT -j DROP
    
    # Save rules
-   sudo /etc/init.d/iptables save
-   sudo rc-update add iptables default
+   doas /etc/init.d/iptables save
+   doas rc-update add iptables default
    ```
 
 2. **Regular Updates**
    ```bash
    # Update Alpine packages regularly
-   sudo apk update && sudo apk upgrade
+   doas apk update && doas apk upgrade
    
    # Update Node.js dependencies
    cd /home/pi/void-main-app
