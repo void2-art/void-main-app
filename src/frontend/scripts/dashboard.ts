@@ -89,7 +89,7 @@ class DashboardManager {
 
     private async loadSensorData(): Promise<void> {
         try {
-            const response = await fetch('./api/sensors');
+            const response = await fetch('/api/sensors');
             const data = await response.json() as ApiResponse<SensorInfo[]>;
             
             const sensorGrid = document.getElementById('sensorGrid');
