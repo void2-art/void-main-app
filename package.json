@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npm run clean && npm-run-all --parallel build:backend build:frontend",
     "build:backend": "tsc",
-    "build:frontend": "npm-run-all --parallel build:frontend:*",
+    "build:frontend": "mkdir -p public/styles public/scripts && npm-run-all --parallel build:frontend:*",
     "build:frontend:html": "copyfiles -u 3 \"src/frontend/templates/**/*.html\" public",
     "build:frontend:styles": "sass src/frontend/styles/dashboard.scss public/styles/dashboard.css --style=compressed",
     "build:frontend:scripts": "tsc --project tsconfig.frontend.json",
