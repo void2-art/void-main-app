@@ -2,6 +2,8 @@ import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { createServer, Server } from 'http';
+import { createServer as createHttpsServer } from 'https';
+import { readFileSync } from 'fs';
 import { Server as SocketIOServer } from 'socket.io';
 import { logger } from '@/utils/logger';
 import { ServerConfig } from '@/types/config';
@@ -33,7 +35,8 @@ export class WebServer {
   ) {
     this.config = config;
     this.app = express();
-    this.server = createServer(this.app);
+    // Try to create HTTPS server with self-signed cert, fallback to HTTP
+    this.server = this.createServerWithSSL();
     this.io = new SocketIOServer(this.server, {
       cors: {
         origin: config.cors.origin,
@@ -186,11 +189,84 @@ export class WebServer {
     this.io.emit('display-update', displayData);
   }
 
+  private createServerWithSSL(): Server {
+    try {
+      // Generate self-signed certificate for development
+      const cert = this.generateSelfSignedCert();
+      
+      if (cert) {
+        logger.info('Creating HTTPS server with self-signed certificate');
+        return createHttpsServer({
+          key: cert.key,
+          cert: cert.cert
+        }, this.app);
+      }
+    } catch (error) {
+      logger.warn('Failed to create HTTPS server, falling back to HTTP:', error);
+    }
+    
+    logger.info('Creating HTTP server');
+    return createServer(this.app);
+  }
+
+  private generateSelfSignedCert(): { key: string; cert: string } | null {
+    try {
+      const forge = require('node-forge');
+      const pki = forge.pki;
+      
+      // Generate a keypair
+      const keys = pki.rsa.generateKeyPair(2048);
+      
+      // Create a certificate
+      const cert = pki.createCertificate();
+      cert.publicKey = keys.publicKey;
+      cert.serialNumber = '01';
+      cert.validity.notBefore = new Date();
+      cert.validity.notAfter = new Date();
+      cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + 1);
+      
+      const attrs = [
+        { name: 'commonName', value: 'localhost' },
+        { name: 'countryName', value: 'US' },
+        { shortName: 'ST', value: 'State' },
+        { name: 'localityName', value: 'City' },
+        { name: 'organizationName', value: 'Void Main' },
+        { shortName: 'OU', value: 'IoT' }
+      ];
+      
+      cert.setSubject(attrs);
+      cert.setIssuer(attrs);
+      cert.setExtensions([
+        { name: 'basicConstraints', cA: true },
+        { name: 'keyUsage', keyCertSign: true, digitalSignature: true, nonRepudiation: true },
+        { name: 'subjectAltName', altNames: [
+          { type: 2, value: 'localhost' },
+          { type: 7, ip: '127.0.0.1' },
+          { type: 7, ip: '::1' },
+          { type: 7, ip: '37.0.0.152' },
+          { type: 7, ip: this.config.host }
+        ]}
+      ]);
+      
+      // Self-sign certificate
+      cert.sign(keys.privateKey);
+      
+      return {
+        key: pki.privateKeyToPem(keys.privateKey),
+        cert: pki.certificateToPem(cert)
+      };
+    } catch (error) {
+      logger.error('Failed to generate self-signed certificate:', error);
+      return null;
+    }
+  }
+
   public async start(): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
         this.server.listen(this.config.port, this.config.host, () => {
-          logger.info(`Web server started on http://${this.config.host}:${this.config.port}`);
+          const protocol = this.server instanceof require('https').Server ? 'https' : 'http';
+          logger.info(`Web server started on ${protocol}://${this.config.host}:${this.config.port}`);
           resolve();
         });
 
