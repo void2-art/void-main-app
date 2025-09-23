@@ -3,16 +3,16 @@ import { logger } from '@/utils/logger';
 import { SensorConfig, SensorData } from '@/types/config';
 
 // Modern Raspberry Pi GPIO and I2C imports (2025)
-let pigpio: any;
 let Gpio: any;
 let i2cBus: any;
+let SerialPort: any;
 let isHardwareAvailable = false;
 
 try {
   // These will only work on actual Raspberry Pi hardware
-  pigpio = require('pigpio');
   Gpio = require('onoff').Gpio;
   i2cBus = require('i2c-bus');
+  SerialPort = require('serialport').SerialPort;
   // For Johnny Five sensors (still supported)
   const five = require('johnny-five');
   isHardwareAvailable = true;
@@ -86,19 +86,14 @@ export class SensorManager extends EventEmitter {
 
   private async setupRealSensors(): Promise<void> {
     try {
-      // Initialize pigpio for hardware access
-      if (pigpio) {
-        // Note: pigpio daemon needs to be running on the Pi
-        logger.info('Using pigpio for hardware access');
-      }
-
       // Example: Setup I2C bus for sensors like BME280
       if (i2cBus) {
         // const i2c1 = i2cBus.openSync(1); // I2C bus 1
         // this.sensors.set('i2c_bus', i2c1);
+        logger.info('I2C bus available for sensor communication');
       }
 
-      // Example GPIO sensor setup using modern libraries
+      // Example GPIO sensor setup using onoff library
       // Motion sensor on GPIO 18
       if (Gpio && Gpio.accessible) {
         // const motionSensor = new Gpio(18, 'in', 'both');
@@ -106,10 +101,17 @@ export class SensorManager extends EventEmitter {
         logger.info('GPIO sensors setup complete');
       }
 
+      // Example: Serial communication for UART sensors
+      if (SerialPort) {
+        // const port = new SerialPort({ path: '/dev/ttyS0', baudRate: 9600 });
+        // this.sensors.set('serial_sensor', port);
+        logger.info('Serial communication available');
+      }
+
       // Example: BME280 sensor for temperature, humidity, pressure
       // This would need actual sensor setup code based on your specific sensors
       
-      logger.info('Real sensors initialized with modern libraries');
+      logger.info('Real sensors initialized with modern libraries (without pigpio)');
     } catch (error) {
       logger.error('Failed to initialize real sensors:', error);
       throw error;
