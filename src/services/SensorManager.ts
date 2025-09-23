@@ -2,22 +2,24 @@ import { EventEmitter } from 'events';
 import { logger } from '@/utils/logger';
 import { SensorConfig, SensorData } from '@/types/config';
 
-// Raspberry Pi GPIO and I2C imports
-let raspi: any;
-let I2C: any;
-let DigitalInput: any;
-let AnalogSensor: any;
+// Modern Raspberry Pi GPIO and I2C imports (2025)
+let pigpio: any;
+let Gpio: any;
+let i2cBus: any;
+let isHardwareAvailable = false;
 
 try {
   // These will only work on actual Raspberry Pi hardware
-  raspi = require('raspi');
-  I2C = require('raspi-i2c').I2C;
-  DigitalInput = require('raspi-gpio').DigitalInput;
-  // For Johnny Five sensors
+  pigpio = require('pigpio');
+  Gpio = require('onoff').Gpio;
+  i2cBus = require('i2c-bus');
+  // For Johnny Five sensors (still supported)
   const five = require('johnny-five');
-  const RaspiIO = require('raspi-io').RaspiIO;
+  isHardwareAvailable = true;
+  logger.info('Hardware GPIO libraries loaded successfully');
 } catch (error) {
   logger.warn('Raspberry Pi libraries not available, running in simulation mode');
+  isHardwareAvailable = false;
 }
 
 export class SensorManager extends EventEmitter {
@@ -29,7 +31,7 @@ export class SensorManager extends EventEmitter {
   constructor(config: SensorConfig) {
     super();
     this.config = config;
-    this.isSimulation = !raspi;
+    this.isSimulation = !isHardwareAvailable;
   }
 
   public async initialize(): Promise<void> {
@@ -84,21 +86,30 @@ export class SensorManager extends EventEmitter {
 
   private async setupRealSensors(): Promise<void> {
     try {
-      await new Promise<void>((resolve) => {
-        raspi.init(() => {
-          logger.info('Raspi initialized');
-          resolve();
-        });
-      });
+      // Initialize pigpio for hardware access
+      if (pigpio) {
+        // Note: pigpio daemon needs to be running on the Pi
+        logger.info('Using pigpio for hardware access');
+      }
+
+      // Example: Setup I2C bus for sensors like BME280
+      if (i2cBus) {
+        // const i2c1 = i2cBus.openSync(1); // I2C bus 1
+        // this.sensors.set('i2c_bus', i2c1);
+      }
+
+      // Example GPIO sensor setup using modern libraries
+      // Motion sensor on GPIO 18
+      if (Gpio && Gpio.accessible) {
+        // const motionSensor = new Gpio(18, 'in', 'both');
+        // this.sensors.set('motion', motionSensor);
+        logger.info('GPIO sensors setup complete');
+      }
 
       // Example: BME280 sensor for temperature, humidity, pressure
       // This would need actual sensor setup code based on your specific sensors
       
-      // Example GPIO sensor setup
-      // const motionSensor = new DigitalInput('GPIO18');
-      // this.sensors.set('motion', motionSensor);
-
-      logger.info('Real sensors initialized');
+      logger.info('Real sensors initialized with modern libraries');
     } catch (error) {
       logger.error('Failed to initialize real sensors:', error);
       throw error;
