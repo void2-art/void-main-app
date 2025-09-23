@@ -98,14 +98,19 @@ export class WebServer {
       });
     });
 
-    // Static files (if you want to serve a web UI)
+    // Static files (serve the dashboard)
     this.app.use(express.static('public'));
 
-    // Catch-all handler
-    this.app.get('*', (req: Request, res: Response) => {
+    // Serve dashboard for root route
+    this.app.get('/', (req: Request, res: Response) => {
+      res.sendFile('index.html', { root: 'public' });
+    });
+
+    // Catch-all handler for API routes only
+    this.app.get('/api/*', (req: Request, res: Response) => {
       res.status(404).json({
-        error: 'Not Found',
-        message: `Route ${req.path} not found`,
+        error: 'API endpoint not found',
+        message: `API route ${req.path} not found`,
       });
     });
 
