@@ -1,34 +1,34 @@
 // Variables - Retrofuturistic Black & White Theme
 $primary-gradient: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%);
-$card-bg: rgba(0, 0, 0, 0.85);
-$primary-color: #00ff00;
+$card-bg: rgba(0, 0, 0, 0.9);
+$primary-color: #ffffff;
 $secondary-color: #ffffff;
-$accent-color: #00ffff;
+$accent-color: #cccccc;
 $text-dark: #ffffff;
 $text-light: #cccccc;
 $text-muted: #888888;
-$success-color: #00ff00;
-$warning-color: #ffff00;
-$error-color: #ff0000;
-$border-color: #333333;
-$glow-color: #00ff00;
-$scan-line-color: rgba(0, 255, 0, 0.03);
-$grid-color: rgba(255, 255, 255, 0.1);
+$success-color: #ffffff;
+$warning-color: #ffffff;
+$error-color: #ffffff;
+$border-color: #444444;
+$glow-color: #ffffff;
+$scan-line-color: rgba(255, 255, 255, 0.02);
+$grid-color: rgba(255, 255, 255, 0.05);
 
 // Mixins
 @mixin card-shadow {
     box-shadow: 
-        0 0 20px rgba(0, 255, 0, 0.3),
+        0 0 10px rgba(255, 255, 255, 0.1),
         inset 0 0 20px rgba(0, 0, 0, 0.5),
-        0 0 0 1px rgba(0, 255, 0, 0.2);
+        0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
 @mixin button-gradient {
     background: linear-gradient(135deg, #000000 0%, #333333 50%, #000000 100%);
     border: 1px solid $glow-color;
     box-shadow: 
-        0 0 10px rgba(0, 255, 0, 0.3),
-        inset 0 0 10px rgba(0, 255, 0, 0.1);
+        0 0 5px rgba(255, 255, 255, 0.2),
+        inset 0 0 5px rgba(255, 255, 255, 0.05);
 }
 
 @mixin transition($property: all, $duration: 0.3s, $timing: ease) {
@@ -37,9 +37,8 @@ $grid-color: rgba(255, 255, 255, 0.1);
 
 @mixin terminal-glow {
     text-shadow: 
-        0 0 5px currentColor,
-        0 0 10px currentColor,
-        0 0 15px currentColor;
+        0 0 2px currentColor,
+        0 0 4px rgba(255, 255, 255, 0.3);
 }
 
 @mixin scan-lines {
@@ -160,15 +159,13 @@ body {
 @keyframes text-glow {
     from {
         text-shadow: 
-            0 0 5px $primary-color,
-            0 0 10px $primary-color,
-            0 0 15px $primary-color;
+            0 0 2px $primary-color,
+            0 0 4px rgba(255, 255, 255, 0.3);
     }
     to {
         text-shadow: 
-            0 0 10px $primary-color,
-            0 0 20px $primary-color,
-            0 0 30px $primary-color;
+            0 0 4px $primary-color,
+            0 0 8px rgba(255, 255, 255, 0.4);
     }
 }
 
@@ -186,7 +183,6 @@ body {
     @include crt-effect;
     padding: 25px;
     @include card-shadow;
-    backdrop-filter: blur(10px);
     @include transition(transform);
     border: 2px solid $border-color;
     position: relative;
@@ -195,9 +191,9 @@ body {
         transform: translateY(-5px);
         border-color: $primary-color;
         box-shadow: 
-            0 0 30px rgba(0, 255, 0, 0.4),
+            0 0 15px rgba(255, 255, 255, 0.2),
             inset 0 0 30px rgba(0, 0, 0, 0.5),
-            0 0 0 1px rgba(0, 255, 0, 0.3);
+            0 0 0 1px rgba(255, 255, 255, 0.3);
     }
     
     // Add terminal-style corners
@@ -276,7 +272,7 @@ body {
     &:hover {
         transform: scale(1.05);
         border-color: $primary-color;
-        box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
     }
     
     // Add scan line effect to sensors
@@ -369,8 +365,8 @@ body {
         transform: translateY(-2px);
         color: $primary-color;
         box-shadow: 
-            0 0 20px rgba(0, 255, 0, 0.4),
-            inset 0 0 20px rgba(0, 255, 0, 0.1);
+            0 0 10px rgba(255, 255, 255, 0.3),
+            inset 0 0 10px rgba(255, 255, 255, 0.1);
         border-color: $primary-color;
     }
 
@@ -386,7 +382,7 @@ body {
         left: -100%;
         width: 100%;
         height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.2), transparent);
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
         @include transition(left, 0.5s);
     }
     
@@ -407,13 +403,13 @@ body {
 
 .status-online {
     background: $success-color;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
     animation: pulse 2s infinite;
 }
 
 .status-offline {
     background: $error-color;
-    box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
 }
 
 @keyframes pulse {
@@ -460,7 +456,7 @@ body {
         border-radius: 4px;
         
         &:hover {
-            background: #33ff33;
+            background: #cccccc;
         }
     }
 }
@@ -484,7 +480,7 @@ body {
 
     &:focus {
         border-color: $primary-color;
-        box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
     }
     
     &::placeholder {
@@ -511,7 +507,7 @@ body {
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin: 0 auto;
-    box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
 }
 
 @keyframes spin {
@@ -605,8 +601,8 @@ body::after {
     right: 0;
     bottom: 0;
     background-image: 
-        radial-gradient(circle at 25% 25%, rgba(0, 255, 0, 0.02) 0%, transparent 50%),
-        radial-gradient(circle at 75% 75%, rgba(0, 255, 255, 0.02) 0%, transparent 50%);
+        radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.01) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.015) 0%, transparent 50%);
     pointer-events: none;
     z-index: -1;
 }
