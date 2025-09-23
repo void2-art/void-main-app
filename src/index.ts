@@ -24,7 +24,12 @@ class VoidMainApp {
     this.sensorManager = new SensorManager(this.config.sensors);
     this.displayManager = new DisplayManager(this.config.display);
     this.aiService = new AIService(this.config.ai);
-    this.webServer = new WebServer(this.config.server);
+    this.webServer = new WebServer(
+      this.config.server,
+      this.sensorManager,
+      this.aiService,
+      this.displayManager
+    );
   }
 
   private loadConfig(): AppConfig {

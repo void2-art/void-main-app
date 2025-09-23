@@ -376,8 +376,34 @@
                 
                 const sensorGrid = document.getElementById('sensorGrid');
                 
+                // Update header with system status
+                const sensorHeader = document.querySelector('.card-header h3');
+                if (data.systemStatus) {
+                    const statusIcon = data.systemStatus.isSimulation ? 'fa-microchip' : 'fa-plug';
+                    const statusText = data.systemStatus.isSimulation ? 'Simulated' : 'Hardware';
+                    sensorHeader.innerHTML = `Sensor Data (${statusText})`;
+                    sensorHeader.parentElement.querySelector('i').className = `fas ${statusIcon}`;
+                }
+                
                 if (data.sensors && data.sensors.length > 0) {
                     sensorGrid.innerHTML = '';
+                    
+                    // Add system status info
+                    if (data.systemStatus) {
+                        const statusDiv = document.createElement('div');
+                        statusDiv.style.gridColumn = '1 / -1';
+                        statusDiv.style.marginBottom = '15px';
+                        statusDiv.style.padding = '10px';
+                        statusDiv.style.backgroundColor = data.systemStatus.isSimulation ? '#fff3cd' : '#d4edda';
+                        statusDiv.style.borderRadius = '5px';
+                        statusDiv.style.fontSize = '0.9rem';
+                        statusDiv.innerHTML = `
+                            <strong>Status:</strong> ${data.message || 'Unknown'}<br>
+                            <strong>Sensors:</strong> ${data.systemStatus.sensorCount} active<br>
+                            <strong>Hardware:</strong> ${data.systemStatus.hardwareAvailable ? 'Available' : 'Not Available'}
+                        `;
+                        sensorGrid.appendChild(statusDiv);
+                    }
                     
                     for (const sensor of data.sensors) {
                         try {
@@ -386,14 +412,34 @@
                             
                             const sensorItem = document.createElement('div');
                             sensorItem.className = 'sensor-item';
+                            
+                            // Add visual indicator for simulation vs hardware
+                            const statusIndicator = sensor.isSimulated ? 
+                                '<i class="fas fa-microchip" style="color: #ffc107; margin-right: 5px;" title="Simulated"></i>' :
+                                '<i class="fas fa-plug" style="color: #28a745; margin-right: 5px;" title="Hardware"></i>';
+                            
                             sensorItem.innerHTML = `
                                 <div class="sensor-value">${sensorData.value?.toFixed(1) || 'N/A'}</div>
                                 <div class="sensor-label">${sensorData.unit || ''}</div>
-                                <div class="sensor-label">${sensor.type}</div>
+                                <div class="sensor-label">${statusIndicator}${sensor.type}</div>
+                                <div style="font-size: 0.7rem; color: #888; margin-top: 5px;">
+                                    ${sensor.status} • ${sensor.isSimulated ? 'Sim' : 'HW'}
+                                </div>
                             `;
                             sensorGrid.appendChild(sensorItem);
                         } catch (error) {
                             console.error(`Error loading sensor ${sensor.id}:`, error);
+                            
+                            // Show error state for this sensor
+                            const sensorItem = document.createElement('div');
+                            sensorItem.className = 'sensor-item';
+                            sensorItem.style.backgroundColor = '#f8d7da';
+                            sensorItem.innerHTML = `
+                                <div class="sensor-value">ERR</div>
+                                <div class="sensor-label">Error</div>
+                                <div class="sensor-label">${sensor.type}</div>
+                            `;
+                            sensorGrid.appendChild(sensorItem);
                         }
                     }
                 } else {
@@ -415,11 +461,12 @@
                 
                 const info = [
                     { label: 'Node.js Version', value: data.nodeVersion || 'Unknown' },
-                    { label: 'Platform', value: data.platform || 'Unknown' },
-                    { label: 'Architecture', value: data.architecture || 'Unknown' },
+                    { label: 'Platform', value: `${data.platform || 'Unknown'} (${data.arch || 'Unknown'})` },
+                    { label: 'Hostname', value: data.hostname || 'Unknown' },
                     { label: 'Uptime', value: formatUptime(data.uptime) },
-                    { label: 'Memory Usage', value: formatMemory(data.memoryUsage) },
-                    { label: 'Status', value: 'Running' }
+                    { label: 'Memory Usage', value: formatMemory(data.memory) },
+                    { label: 'Load Average', value: formatLoadAverage(data.loadAverage) },
+                    { label: 'Status', value: '🟢 Running' }
                 ];
                 
                 info.forEach(item => {
@@ -431,6 +478,29 @@
                     `;
                     systemInfo.appendChild(infoItem);
                 });
+                
+                // Add network interfaces info
+                if (data.networkInterfaces) {
+                    const networkDiv = document.createElement('div');
+                    networkDiv.style.gridColumn = '1 / -1';
+                    networkDiv.style.marginTop = '15px';
+                    networkDiv.style.padding = '10px';
+                    networkDiv.style.backgroundColor = '#e9ecef';
+                    networkDiv.style.borderRadius = '5px';
+                    networkDiv.style.fontSize = '0.8rem';
+                    
+                    let networkInfo = '<strong>Network Interfaces:</strong><br>';
+                    Object.keys(data.networkInterfaces).forEach(iface => {
+                        const addresses = data.networkInterfaces[iface];
+                        const ipv4 = addresses.find(addr => addr.family === 'IPv4' && !addr.internal);
+                        if (ipv4) {
+                            networkInfo += `${iface}: ${ipv4.address}<br>`;
+                        }
+                    });
+                    
+                    networkDiv.innerHTML = networkInfo;
+                    systemInfo.appendChild(networkDiv);
+                }
             } catch (error) {
                 console.error('Error loading system info:', error);
                 document.getElementById('systemInfo').innerHTML = '<p>Error loading system info</p>';
@@ -448,6 +518,11 @@
             if (!memory || !memory.rss) return 'Unknown';
             const mb = Math.round(memory.rss / 1024 / 1024);
             return `${mb} MB`;
+        }
+
+        function formatLoadAverage(loadAvg) {
+            if (!loadAvg || !Array.isArray(loadAvg)) return 'N/A';
+            return loadAvg.map(load => load.toFixed(2)).join(', ');
         }
 
         async function toggleDisplay() {

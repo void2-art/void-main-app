@@ -175,6 +175,55 @@ export class SensorManager extends EventEmitter {
     return [];
   }
 
+  public getAllSensors(): Array<{id: string, type: string, status: string, isSimulated: boolean}> {
+    const sensorList: Array<{id: string, type: string, status: string, isSimulated: boolean}> = [];
+    
+    this.sensors.forEach((sensor, id) => {
+      sensorList.push({
+        id,
+        type: sensor.type,
+        status: 'active',
+        isSimulated: this.isSimulation
+      });
+    });
+    
+    return sensorList;
+  }
+
+  public getCurrentSensorValue(sensorId: string): {value: number, unit: string, timestamp: Date} | null {
+    const sensor = this.sensors.get(sensorId);
+    if (!sensor) {
+      return null;
+    }
+
+    let value: number;
+    if (this.isSimulation && sensor.simulate) {
+      value = sensor.simulate();
+    } else {
+      value = this.readSensorValue(sensor);
+    }
+
+    return {
+      value,
+      unit: sensor.unit,
+      timestamp: new Date()
+    };
+  }
+
+  public getSystemStatus(): {
+    isSimulation: boolean,
+    sensorCount: number,
+    hardwareAvailable: boolean,
+    lastUpdate: Date
+  } {
+    return {
+      isSimulation: this.isSimulation,
+      sensorCount: this.sensors.size,
+      hardwareAvailable: isHardwareAvailable,
+      lastUpdate: new Date()
+    };
+  }
+
   public async cleanup(): Promise<void> {
     logger.info('Cleaning up Sensor Manager...');
     

@@ -10,6 +10,9 @@ import { SensorController } from '@/controllers/SensorController';
 import { AIController } from '@/controllers/AIController';
 import { DisplayController } from '@/controllers/DisplayController';
 import { DeploymentController } from '@/controllers/DeploymentController';
+import { SensorManager } from '@/services/SensorManager';
+import { AIService } from '@/services/AIService';
+import { DisplayManager } from '@/services/DisplayManager';
 
 export class WebServer {
   private app: Express;
@@ -22,7 +25,12 @@ export class WebServer {
   private displayController: DisplayController;
   private deploymentController: DeploymentController;
 
-  constructor(config: ServerConfig) {
+  constructor(
+    config: ServerConfig, 
+    sensorManager?: SensorManager,
+    aiService?: AIService,
+    displayManager?: DisplayManager
+  ) {
     this.config = config;
     this.app = express();
     this.server = createServer(this.app);
@@ -35,9 +43,9 @@ export class WebServer {
 
     // Initialize controllers
     this.authController = new AuthController();
-    this.sensorController = new SensorController();
-    this.aiController = new AIController();
-    this.displayController = new DisplayController();
+    this.sensorController = new SensorController(sensorManager);
+    this.aiController = new AIController(aiService);
+    this.displayController = new DisplayController(displayManager);
     this.deploymentController = new DeploymentController();
 
     this.setupMiddleware();

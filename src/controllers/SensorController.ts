@@ -1,11 +1,14 @@
 import { Router, Request, Response } from 'express';
 import { logger } from '@/utils/logger';
+import { SensorManager } from '@/services/SensorManager';
 
 export class SensorController {
   private router: Router;
+  private sensorManager?: SensorManager;
 
-  constructor() {
+  constructor(sensorManager?: SensorManager) {
     this.router = Router();
+    this.sensorManager = sensorManager;
     this.setupRoutes();
   }
 
@@ -17,16 +20,31 @@ export class SensorController {
 
   private getAllSensors(req: Request, res: Response): void {
     try {
-      // This would integrate with your SensorManager
-      const sensors = [
-        { id: 'temperature', type: 'temperature', status: 'active' },
-        { id: 'humidity', type: 'humidity', status: 'active' },
-        { id: 'pressure', type: 'pressure', status: 'active' },
-        { id: 'light', type: 'light', status: 'active' },
-        { id: 'motion', type: 'motion', status: 'active' },
-      ];
+      if (this.sensorManager) {
+        const sensors = this.sensorManager.getAllSensors();
+        const systemStatus = this.sensorManager.getSystemStatus();
+        
+        res.json({ 
+          sensors,
+          systemStatus,
+          message: systemStatus.isSimulation ? 'Running in simulation mode' : 'Connected to hardware sensors'
+        });
+      } else {
+        // Fallback if no sensor manager
+        const sensors = [
+          { id: 'temperature', type: 'temperature', status: 'disconnected', isSimulated: true },
+          { id: 'humidity', type: 'humidity', status: 'disconnected', isSimulated: true },
+          { id: 'pressure', type: 'pressure', status: 'disconnected', isSimulated: true },
+          { id: 'light', type: 'light', status: 'disconnected', isSimulated: true },
+          { id: 'motion', type: 'motion', status: 'disconnected', isSimulated: true },
+        ];
 
-      res.json({ sensors });
+        res.json({ 
+          sensors,
+          systemStatus: { isSimulation: true, sensorCount: 0, hardwareAvailable: false },
+          message: 'Sensor manager not initialized'
+        });
+      }
     } catch (error) {
       logger.error('Error getting sensors:', error);
       res.status(500).json({ error: 'Failed to get sensor data' });
@@ -42,16 +60,32 @@ export class SensorController {
         return;
       }
       
-      // Mock sensor data - this would come from SensorManager
-      const mockData = {
-        id: sensorId,
-        value: Math.random() * 100,
-        unit: this.getUnitForSensor(sensorId),
-        timestamp: new Date(),
-        status: 'active'
-      };
+      if (this.sensorManager) {
+        const sensorData = this.sensorManager.getCurrentSensorValue(sensorId);
+        
+        if (sensorData) {
+          res.json({
+            id: sensorId,
+            value: sensorData.value,
+            unit: sensorData.unit,
+            timestamp: sensorData.timestamp,
+            status: 'active'
+          });
+        } else {
+          res.status(404).json({ error: `Sensor ${sensorId} not found` });
+        }
+      } else {
+        // Fallback mock data
+        const mockData = {
+          id: sensorId,
+          value: Math.random() * 100,
+          unit: this.getUnitForSensor(sensorId),
+          timestamp: new Date(),
+          status: 'simulated'
+        };
 
-      res.json(mockData);
+        res.json(mockData);
+      }
     } catch (error) {
       logger.error('Error getting sensor data:', error);
       res.status(500).json({ error: 'Failed to get sensor data' });
