@@ -1,3 +1,6 @@
+// Register module aliases for runtime path resolution
+import 'module-alias/register';
+
 import dotenv from 'dotenv';
 import { logger } from '@/utils/logger';
 import { SensorManager } from '@/services/SensorManager';
