@@ -31,7 +31,7 @@ export class AIController {
 
       if (this.aiService) {
         // Use the actual AIService
-        const response = await this.aiService.generateResponse(message);
+        const response = await this.aiService.processMessage(message);
         
         res.json({
           userMessage: message,
