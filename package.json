@@ -4,11 +4,21 @@
   "description": "TypeScript application for Raspberry Pi 5 with sensor integration, display output, and AI services",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "npm run clean && npm-run-all --parallel build:backend build:frontend",
+    "build:backend": "tsc",
+    "build:frontend": "npm-run-all --parallel build:frontend:*",
+    "build:frontend:html": "copyfiles -u 3 \"src/frontend/templates/**/*.html\" public",
+    "build:frontend:styles": "sass src/frontend/styles/dashboard.scss public/styles/dashboard.css --style=compressed",
+    "build:frontend:scripts": "tsc --project tsconfig.frontend.json",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
-    "watch": "tsc -w",
-    "clean": "rm -rf dist",
+    "dev:frontend": "npm-run-all --parallel dev:frontend:*",
+    "dev:frontend:styles": "sass src/frontend/styles/dashboard.scss public/styles/dashboard.css --watch",
+    "dev:frontend:scripts": "tsc --project tsconfig.frontend.json --watch",
+    "watch": "npm-run-all --parallel watch:*",
+    "watch:backend": "tsc -w",
+    "watch:frontend": "npm run dev:frontend",
+    "clean": "rm -rf dist public/styles public/scripts public/index.html",
     "test": "jest",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts"
@@ -61,7 +71,10 @@
     "@typescript-eslint/parser": "^6.7.2",
     "eslint": "^8.49.0",
     "prettier": "^3.0.3",
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "sass": "^1.69.0",
+    "copyfiles": "^2.4.1",
+    "npm-run-all": "^4.1.5"
   },
   "engines": {
     "node": ">=18.0.0"
