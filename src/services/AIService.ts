@@ -164,10 +164,13 @@ Current system time: ${new Date().toISOString()}`;
       // Trim conversation history if it gets too long
       if (this.conversationHistory.length > 20) {
         // Keep system prompt and last 18 messages
-        this.conversationHistory = [
-          this.conversationHistory[0], // system prompt
-          ...this.conversationHistory.slice(-18)
-        ];
+        const systemPrompt = this.conversationHistory[0];
+        if (systemPrompt) {
+          this.conversationHistory = [
+            systemPrompt, // system prompt
+            ...this.conversationHistory.slice(-18)
+          ];
+        }
       }
 
       logger.info('Generated AI response for user message');
@@ -243,7 +246,12 @@ Keep the response concise and actionable.`;
   }
 
   public clearConversationHistory(): void {
-    this.conversationHistory = [this.conversationHistory[0]]; // Keep system prompt
+    const systemPrompt = this.conversationHistory[0];
+    if (systemPrompt) {
+      this.conversationHistory = [systemPrompt]; // Keep system prompt
+    } else {
+      this.conversationHistory = [];
+    }
     logger.info('Conversation history cleared');
   }
 

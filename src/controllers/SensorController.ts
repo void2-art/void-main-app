@@ -37,6 +37,11 @@ export class SensorController {
     try {
       const { sensorId } = req.params;
       
+      if (!sensorId) {
+        res.status(400).json({ error: 'Sensor ID is required' });
+        return;
+      }
+      
       // Mock sensor data - this would come from SensorManager
       const mockData = {
         id: sensorId,
