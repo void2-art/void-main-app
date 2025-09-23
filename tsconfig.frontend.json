@@ -16,7 +16,9 @@
     "noEmit": false,
     "declaration": false,
     "sourceMap": true,
-    "removeComments": true
+    "removeComments": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false
   },
   "include": [
     "src/frontend/scripts/**/*"
@@ -25,5 +27,8 @@
     "node_modules",
     "dist",
     "public"
+  ],
+  "typeRoots": [
+    "node_modules/@types"
   ]
 }

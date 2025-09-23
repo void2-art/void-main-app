@@ -90,7 +90,7 @@ class DashboardManager {
     private async loadSensorData(): Promise<void> {
         try {
             const response = await fetch('/api/sensors');
-            const data: ApiResponse<SensorInfo[]> = await response.json();
+            const data = await response.json() as ApiResponse<SensorInfo[]>;
             
             const sensorGrid = document.getElementById('sensorGrid');
             if (!sensorGrid) return;
@@ -119,7 +119,7 @@ class DashboardManager {
                 for (const sensor of data.sensors) {
                     try {
                         const sensorResponse = await fetch(`/api/sensors/${sensor.id}`);
-                        const sensorData: SensorData = await sensorResponse.json();
+                        const sensorData = await sensorResponse.json() as SensorData;
                         
                         const sensorItem = this.createSensorItem(sensor, sensorData);
                         sensorGrid.appendChild(sensorItem);
@@ -193,7 +193,7 @@ class DashboardManager {
     private async loadSystemInfo(): Promise<void> {
         try {
             const response = await fetch('/api/system');
-            const data: SystemInfo = await response.json();
+            const data = await response.json() as SystemInfo;
             
             const systemInfo = document.getElementById('systemInfo');
             if (!systemInfo) return;
@@ -246,9 +246,11 @@ class DashboardManager {
         let networkInfo = '<strong>Network Interfaces:</strong><br>';
         Object.keys(networkInterfaces).forEach(iface => {
             const addresses = networkInterfaces[iface];
-            const ipv4 = addresses.find(addr => addr.family === 'IPv4' && !addr.internal);
-            if (ipv4) {
-                networkInfo += `${iface}: ${ipv4.address}<br>`;
+            if (addresses) {
+                const ipv4 = addresses.find(addr => addr.family === 'IPv4' && !addr.internal);
+                if (ipv4) {
+                    networkInfo += `${iface}: ${ipv4.address}<br>`;
+                }
             }
         });
         
@@ -277,7 +279,7 @@ class DashboardManager {
     public async toggleDisplay(): Promise<void> {
         try {
             const response = await fetch('/api/display/status');
-            const status = await response.json();
+            const status = await response.json() as any;
             
             if (status.enabled) {
                 await fetch('/api/display/clear', { method: 'POST' });
@@ -354,7 +356,7 @@ class DashboardManager {
             });
             
             if (response.ok) {
-                const data = await response.json();
+                const data = await response.json() as any;
                 chatMessages.innerHTML += `<p><strong>AI:</strong> ${data.response}</p>`;
             } else {
                 chatMessages.innerHTML += `<p><strong>AI:</strong> Sorry, I'm having trouble right now. Please try again later.</p>`;
