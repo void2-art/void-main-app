@@ -82,7 +82,9 @@ dist
 
 # Gatsby files
 .cache/
-# Note: We keep our public directory for the dashboard UI
+
+# Generated frontend build output (should be built, not tracked)
+public/
 
 # Storybook build outputs
 .out
