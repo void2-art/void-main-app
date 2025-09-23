@@ -1,11 +1,14 @@
 import { Router, Request, Response } from 'express';
 import { logger } from '@/utils/logger';
+import { DisplayManager } from '@/services/DisplayManager';
 
 export class DisplayController {
   private router: Router;
+  private displayManager: DisplayManager | undefined;
 
-  constructor() {
+  constructor(displayManager?: DisplayManager) {
     this.router = Router();
+    this.displayManager = displayManager;
     this.setupRoutes();
   }
 

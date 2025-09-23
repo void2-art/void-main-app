@@ -4,7 +4,7 @@ import { SensorManager } from '@/services/SensorManager';
 
 export class SensorController {
   private router: Router;
-  private sensorManager?: SensorManager;
+  private sensorManager: SensorManager | undefined;
 
   constructor(sensorManager?: SensorManager) {
     this.router = Router();

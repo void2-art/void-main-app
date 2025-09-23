@@ -1,11 +1,14 @@
 import { Router, Request, Response } from 'express';
 import { logger } from '@/utils/logger';
+import { AIService } from '@/services/AIService';
 
 export class AIController {
   private router: Router;
+  private aiService: AIService | undefined;
 
-  constructor() {
+  constructor(aiService?: AIService) {
     this.router = Router();
+    this.aiService = aiService;
     this.setupRoutes();
   }
 
@@ -26,14 +29,25 @@ export class AIController {
         return;
       }
 
-      // This would integrate with your AIService
-      const response = await this.processMessage(message);
-
-      res.json({
-        userMessage: message,
-        aiResponse: response,
-        timestamp: new Date()
-      });
+      if (this.aiService) {
+        // Use the actual AIService
+        const response = await this.aiService.generateResponse(message);
+        
+        res.json({
+          userMessage: message,
+          response: response,
+          timestamp: new Date()
+        });
+      } else {
+        // Fallback response
+        const response = await this.processMessage(message);
+        
+        res.json({
+          userMessage: message,
+          response: response,
+          timestamp: new Date()
+        });
+      }
     } catch (error) {
       logger.error('Error in AI chat:', error);
       res.status(500).json({ error: 'Failed to process message' });
