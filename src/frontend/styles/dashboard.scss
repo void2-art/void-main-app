@@ -1,26 +1,97 @@
-// Variables
-$primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-$card-bg: rgba(255, 255, 255, 0.95);
-$primary-color: #667eea;
-$text-dark: #333;
-$text-light: #666;
-$text-muted: #888;
-$success-color: #28a745;
-$warning-color: #ffc107;
-$error-color: #f44336;
-$border-color: #eee;
+// Variables - Retrofuturistic Black & White Theme
+$primary-gradient: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%);
+$card-bg: rgba(0, 0, 0, 0.85);
+$primary-color: #00ff00;
+$secondary-color: #ffffff;
+$accent-color: #00ffff;
+$text-dark: #ffffff;
+$text-light: #cccccc;
+$text-muted: #888888;
+$success-color: #00ff00;
+$warning-color: #ffff00;
+$error-color: #ff0000;
+$border-color: #333333;
+$glow-color: #00ff00;
+$scan-line-color: rgba(0, 255, 0, 0.03);
+$grid-color: rgba(255, 255, 255, 0.1);
 
 // Mixins
 @mixin card-shadow {
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: 
+        0 0 20px rgba(0, 255, 0, 0.3),
+        inset 0 0 20px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(0, 255, 0, 0.2);
 }
 
 @mixin button-gradient {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #000000 0%, #333333 50%, #000000 100%);
+    border: 1px solid $glow-color;
+    box-shadow: 
+        0 0 10px rgba(0, 255, 0, 0.3),
+        inset 0 0 10px rgba(0, 255, 0, 0.1);
 }
 
 @mixin transition($property: all, $duration: 0.3s, $timing: ease) {
     transition: $property $duration $timing;
+}
+
+@mixin terminal-glow {
+    text-shadow: 
+        0 0 5px currentColor,
+        0 0 10px currentColor,
+        0 0 15px currentColor;
+}
+
+@mixin scan-lines {
+    position: relative;
+    
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            $scan-line-color 2px,
+            $scan-line-color 4px
+        );
+        pointer-events: none;
+        z-index: 1;
+    }
+}
+
+@mixin crt-effect {
+    border-radius: 15px;
+    border: 2px solid $border-color;
+    position: relative;
+    overflow: hidden;
+    
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(
+            ellipse at center,
+            rgba(0, 0, 0, 0) 60%,
+            rgba(0, 0, 0, 0.3) 100%
+        );
+        pointer-events: none;
+        z-index: 2;
+    }
+}
+
+@mixin grid-background {
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
 }
 
 // Base styles
@@ -31,10 +102,23 @@ $border-color: #eee;
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'JetBrains Mono', 'Courier New', 'Monaco', 'Consolas', monospace;
     background: $primary-gradient;
     min-height: 100vh;
     color: $text-dark;
+    @include grid-background;
+    @include scan-lines;
+    overflow-x: hidden;
+    
+    // CRT flicker animation
+    animation: crt-flicker 0.15s infinite linear alternate;
+}
+
+@keyframes crt-flicker {
+    0% { opacity: 1; }
+    98% { opacity: 1; }
+    99% { opacity: 0.98; }
+    100% { opacity: 1; }
 }
 
 .container {
@@ -46,18 +130,45 @@ body {
 // Header styles
 .header {
     text-align: center;
-    color: white;
+    color: $primary-color;
     margin-bottom: 30px;
+    border: 2px solid $border-color;
+    padding: 20px;
+    @include crt-effect;
+    background: rgba(0, 0, 0, 0.7);
 
     h1 {
+        font-family: 'Orbitron', 'JetBrains Mono', monospace;
         font-size: 2.5rem;
         margin-bottom: 10px;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        @include terminal-glow;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        font-weight: 900;
+        animation: text-glow 2s ease-in-out infinite alternate;
     }
 
     p {
         font-size: 1.1rem;
-        opacity: 0.9;
+        color: $text-light;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        @include terminal-glow;
+    }
+}
+
+@keyframes text-glow {
+    from {
+        text-shadow: 
+            0 0 5px $primary-color,
+            0 0 10px $primary-color,
+            0 0 15px $primary-color;
+    }
+    to {
+        text-shadow: 
+            0 0 10px $primary-color,
+            0 0 20px $primary-color,
+            0 0 30px $primary-color;
     }
 }
 
@@ -72,14 +183,39 @@ body {
 // Card styles
 .card {
     background: $card-bg;
-    border-radius: 15px;
+    @include crt-effect;
     padding: 25px;
     @include card-shadow;
     backdrop-filter: blur(10px);
     @include transition(transform);
+    border: 2px solid $border-color;
+    position: relative;
 
     &:hover {
         transform: translateY(-5px);
+        border-color: $primary-color;
+        box-shadow: 
+            0 0 30px rgba(0, 255, 0, 0.4),
+            inset 0 0 30px rgba(0, 0, 0, 0.5),
+            0 0 0 1px rgba(0, 255, 0, 0.3);
+    }
+    
+    // Add terminal-style corners
+    &::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(45deg, 
+            $primary-color 0%, 
+            transparent 25%, 
+            transparent 75%, 
+            $primary-color 100%);
+        z-index: -1;
+        border-radius: 15px;
+        opacity: 0.3;
     }
 }
 
@@ -87,19 +223,37 @@ body {
     display: flex;
     align-items: center;
     margin-bottom: 20px;
-    border-bottom: 2px solid #f0f0f0;
+    border-bottom: 2px solid $border-color;
     padding-bottom: 15px;
+    position: relative;
 
     i {
         font-size: 1.5rem;
         margin-right: 10px;
         color: $primary-color;
+        @include terminal-glow;
     }
 
     h3 {
         font-size: 1.3rem;
         color: $text-dark;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        @include terminal-glow;
     }
+    
+    // Add blinking cursor effect to headers
+    &::after {
+        content: '_';
+        color: $primary-color;
+        animation: blink 1s infinite;
+        margin-left: 5px;
+    }
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
 }
 
 // Sensor styles
@@ -112,13 +266,35 @@ body {
 .sensor-item {
     text-align: center;
     padding: 15px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(20, 20, 20, 0.8) 100%);
+    border: 1px solid $border-color;
     border-radius: 10px;
     @include transition();
+    position: relative;
+    overflow: hidden;
 
     &:hover {
         transform: scale(1.05);
+        border-color: $primary-color;
+        box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
     }
+    
+    // Add scan line effect to sensors
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, $primary-color, transparent);
+        animation: scan 2s linear infinite;
+    }
+}
+
+@keyframes scan {
+    0% { left: -100%; }
+    100% { left: 100%; }
 }
 
 .sensor-value {
@@ -126,6 +302,8 @@ body {
     font-weight: bold;
     color: $primary-color;
     margin-bottom: 5px;
+    @include terminal-glow;
+    font-family: 'Courier New', monospace;
 }
 
 .sensor-label {
@@ -133,6 +311,7 @@ body {
     color: $text-light;
     text-transform: uppercase;
     letter-spacing: 1px;
+    font-family: 'Courier New', monospace;
 }
 
 // System info styles
@@ -147,15 +326,19 @@ body {
     justify-content: space-between;
     padding: 10px 0;
     border-bottom: 1px solid $border-color;
+    font-family: 'Courier New', monospace;
 }
 
 .info-label {
     font-weight: 600;
-    color: #555;
+    color: $text-light;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .info-value {
-    color: $text-dark;
+    color: $primary-color;
+    @include terminal-glow;
 }
 
 // Controls styles
@@ -168,23 +351,47 @@ body {
 
 .btn {
     @include button-gradient;
-    color: white;
+    color: $text-dark;
     border: none;
     padding: 12px 24px;
-    border-radius: 25px;
+    border-radius: 5px;
     cursor: pointer;
     font-size: 1rem;
     font-weight: 600;
     @include transition();
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
 
     &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        color: $primary-color;
+        box-shadow: 
+            0 0 20px rgba(0, 255, 0, 0.4),
+            inset 0 0 20px rgba(0, 255, 0, 0.1);
+        border-color: $primary-color;
     }
 
     i {
         margin-right: 8px;
+    }
+    
+    // Add button scan effect
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.2), transparent);
+        @include transition(left, 0.5s);
+    }
+    
+    &:hover::before {
+        left: 100%;
     }
 }
 
@@ -195,15 +402,23 @@ body {
     height: 12px;
     border-radius: 50%;
     margin-right: 8px;
+    border: 1px solid currentColor;
 }
 
 .status-online {
-    background: #4CAF50;
-    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+    background: $success-color;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+    animation: pulse 2s infinite;
 }
 
 .status-offline {
     background: $error-color;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
 }
 
 // Chat styles
@@ -214,11 +429,40 @@ body {
 .chat-messages {
     height: 200px;
     overflow-y: auto;
-    background: #f8f9fa;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid $border-color;
     border-radius: 10px;
     padding: 15px;
     margin-bottom: 15px;
-    border: 1px solid #e9ecef;
+    font-family: 'Courier New', monospace;
+    color: $text-light;
+    
+    p {
+        margin-bottom: 10px;
+        
+        strong {
+            color: $primary-color;
+            @include terminal-glow;
+        }
+    }
+    
+    // Add scrollbar styling
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    &::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.3);
+    }
+    
+    &::-webkit-scrollbar-thumb {
+        background: $primary-color;
+        border-radius: 4px;
+        
+        &:hover {
+            background: #33ff33;
+        }
+    }
 }
 
 .chat-input-container {
@@ -229,14 +473,22 @@ body {
 .chat-input {
     flex: 1;
     padding: 12px;
-    border: 2px solid #e9ecef;
-    border-radius: 25px;
+    border: 2px solid $border-color;
+    border-radius: 5px;
     font-size: 1rem;
     outline: none;
     @include transition(border-color);
+    background: rgba(0, 0, 0, 0.7);
+    color: $text-dark;
+    font-family: 'Courier New', monospace;
 
     &:focus {
         border-color: $primary-color;
+        box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+    }
+    
+    &::placeholder {
+        color: $text-muted;
     }
 }
 
@@ -245,16 +497,21 @@ body {
     display: none;
     text-align: center;
     margin: 20px 0;
+    color: $text-light;
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
 .spinner {
     width: 40px;
     height: 40px;
-    border: 4px solid #f3f3f3;
+    border: 4px solid rgba(255, 255, 255, 0.1);
     border-top: 4px solid $primary-color;
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin: 0 auto;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
 }
 
 @keyframes spin {
@@ -265,9 +522,115 @@ body {
 // Footer styles
 .footer {
     text-align: center;
-    color: white;
+    color: $text-light;
     margin-top: 40px;
     opacity: 0.8;
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-top: 2px solid $border-color;
+    padding-top: 20px;
+    
+    p {
+        @include terminal-glow;
+    }
+}
+
+// Additional retrofuturistic effects
+.container {
+    position: relative;
+    
+    // Add static noise overlay
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-opacity='0.03'%3E%3Cpolygon fill='%23ffffff' points='50 0 60 40 100 50 60 60 50 100 40 60 0 50 40 40'/%3E%3C/g%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.1;
+    }
+    
+    > * {
+        position: relative;
+        z-index: 1;
+    }
+}
+
+// Glitch effect for random elements
+@keyframes glitch {
+    0%, 90%, 100% {
+        transform: translate(0);
+    }
+    10% {
+        transform: translate(-2px, 2px);
+    }
+    20% {
+        transform: translate(2px, -2px);
+    }
+    30% {
+        transform: translate(-2px, -2px);
+    }
+    40% {
+        transform: translate(2px, 2px);
+    }
+    50% {
+        transform: translate(-2px, 2px);
+    }
+    60% {
+        transform: translate(2px, -2px);
+    }
+    70% {
+        transform: translate(-2px, -2px);
+    }
+    80% {
+        transform: translate(2px, 2px);
+    }
+}
+
+// Random glitch effect on cards
+.card:nth-child(3n) {
+    animation: glitch 8s infinite;
+}
+
+// Add circuit board pattern to background
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 25% 25%, rgba(0, 255, 0, 0.02) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(0, 255, 255, 0.02) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+// Terminal startup effect
+@keyframes startup {
+    0% {
+        opacity: 0;
+        transform: scaleY(0);
+        transform-origin: top;
+    }
+    50% {
+        opacity: 0.8;
+        transform: scaleY(0.5);
+    }
+    100% {
+        opacity: 1;
+        transform: scaleY(1);
+    }
+}
+
+.card {
+    animation: startup 0.8s ease-out;
+    animation-delay: calc(var(--card-index, 0) * 0.2s);
 }
 
 // Responsive design
@@ -278,9 +641,24 @@ body {
     
     .header h1 {
         font-size: 2rem;
+        letter-spacing: 2px;
     }
     
     .dashboard-grid {
         grid-template-columns: 1fr;
+    }
+    
+    .sensor-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    }
+    
+    .controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn {
+        width: 100%;
+        max-width: 250px;
     }
 }
