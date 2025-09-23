@@ -1,14 +1,4 @@
 // Dashboard API client for Void Main IoT system
-
-// Type declarations for browser environment
-declare const document: any;
-declare const window: any;
-declare const alert: any;
-declare const fetch: any;
-declare type HTMLDivElement = any;
-declare type HTMLInputElement = any;
-declare type KeyboardEvent = any;
-
 interface SensorData {
     id: string;
     value: number;
